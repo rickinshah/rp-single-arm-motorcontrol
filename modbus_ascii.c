@@ -1,11 +1,30 @@
 #include "modbus_ascii.h"
+#include "delay.h"
 #include "rmcs_registers.h"
+#include <stdlib.h>
 #include "uart.h"
 
 static void ByteToHex(uint8_t byte, uint8_t* hex) {
     const uint8_t hex_chars[] = "0123456789ABCDEF";
     hex[0]                    = hex_chars[(byte >> 4) & 0x0F];
     hex[1]                    = hex_chars[byte & 0x0F];
+}
+
+static uint8_t AsciiToNibble(uint8_t c) {
+    if(c >= '0' && c <= '9')
+        return (c - '0');
+    if(c >= 'A' && c <= 'F')
+        return (c - 'A' + 10);
+    if(c >= 'a' && c <= 'f')
+        return (c - 'a' + 10);
+    return 0;
+}
+
+static uint8_t AsciiToByte(uint8_t msb_ascii, uint8_t lsb_ascii) {
+    uint8_t msb = AsciiToNibble(msb_ascii);
+    uint8_t lsb = AsciiToNibble(lsb_ascii);
+
+    return (msb << 4) | lsb;
 }
 
 static uint8_t LRC(uint8_t* data, uint16_t length) {
@@ -83,3 +102,17 @@ void RMCS_SetPosition(uint8_t slave, int32_t pos) {
     WriteSingleRegister(slave, REG_MSB_POS, (pos >> 16) & 0xFFFF);
 }
 
+void ReadUntilMatch(uint8_t slave, uint16_t address, int16_t value) {
+    uint8_t response[50];
+    while(1) {
+        ReadSingleRegister(slave, address);
+        UART_ReadAsciiArray(response);
+
+        int16_t data = (int16_t)(((uint16_t)AsciiToByte(response[7], response[8]) << 8) | AsciiToByte(response[9], response[10]));
+        delay_ms(200);
+
+        if (abs(data - value) <= 50) {
+            return;
+        }
+    }
+}

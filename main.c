@@ -7,9 +7,7 @@
 #include <stdint.h>
 
 int main(void) {
-    uint8_t c;
     uint8_t response[50];
-    uint8_t i = 0;
     SystemInit();
     SysTick_Init();
 
@@ -21,24 +19,14 @@ int main(void) {
 
     delay_ms(200);
     RMCS_SetMode(7, MODE_POS);
-    RMCS_SetSpeed(7, 400);
-
+    RMCS_SetSpeed(7, 5000);
     while (1) {
-        RMCS_SetPosition(7, 20000);
-        ReadSingleRegister(7, REG_LSB_POS);
-        UART_ReadAsciiArray(response);
+        RMCS_SetPosition(7, 133600);
+        // ReadUntilMatch(7, REG_LSB_POS_FB, 20000);
+        delay_ms(10000);
 
-        // do {
-        //     c = UART_ReadByte();
-        // } while(c != ':');
-        // rx[i++] = c;
-        //
-        // do {
-        //     c = UART_ReadByte();
-        //     rx[i++] = c;
-        // } while (c != '\n');
-
-        RMCS_SetPosition(7, -50000);
-        delay_ms(5000);
+        // RMCS_SetPosition(7, -120240);
+        // ReadUntilMatch(7, REG_LSB_POS_FB, -20000);
+        // delay_ms(5000);
     }
 }

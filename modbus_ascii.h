@@ -9,6 +9,6 @@ void RMCS_SetMode(uint8_t slave, uint16_t mode);
 void WriteSingleRegister(uint8_t slave, uint16_t address, uint16_t data);
 void RequestReadRegisters(uint8_t slave, uint16_t address, uint16_t quantity);
 void ReadUntilMatch(uint8_t slave, uint16_t address, uint16_t reg_quantity,
-                    const int16_t *match_values);
+                    const int16_t* match_values);
 
 #endif

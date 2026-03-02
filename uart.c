@@ -17,33 +17,33 @@ void UART_SendByte(uint8_t data) {
     USART2->DR = data;
 }
 
-void UART_SendArray(uint8_t* buf, uint16_t len) {
+void UART_SendArray(const uint8_t* buf, uint16_t len) {
     uint16_t i;
     for (i = 0; i < len; i++) UART_SendByte(buf[i]);
 }
 
 uint8_t UART_ReadByte() {
     while (!(USART2->SR & USART_SR_RXNE));
-    return (uint8_t)USART2->DR;
+    return (uint8_t) USART2->DR;
 }
 
 uint16_t UART_ReadAsciiArray(uint8_t* response, uint16_t max_len) {
     uint16_t i = 0;
-    uint8_t c;
+    uint8_t  c;
     do {
         c = UART_ReadByte();
-    } while(c != ':');
+    } while (c != ':');
 
     response[i++] = c;
     do {
         c = UART_ReadByte();
-        
-        if(i >= max_len) {
+
+        if (i >= max_len) {
             return 0;
         }
 
         response[i++] = c;
-    } while(c != '\n');
+    } while (c != '\n');
 
     return i;
 }

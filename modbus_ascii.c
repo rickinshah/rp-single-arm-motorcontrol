@@ -1,9 +1,9 @@
 #include "modbus_ascii.h"
+#include <stdbool.h>
+#include <stdint.h>
 #include "rmcs_registers.h"
 #include "uart.h"
 #include "utils.h"
-#include <stdbool.h>
-#include <stdint.h>
 
 void WriteSingleRegister(uint8_t slave, uint16_t address, uint16_t data) {
     uint8_t frame[17];
@@ -72,46 +72,46 @@ void RMCS_SetPosition(uint8_t slave, int32_t pos) {
     WriteSingleRegister(slave, REG_MSB_POS, (pos >> 16) & 0xFFFF);
 }
 
-// TODO: check the response like slave, address, function, lrc, registers and return code based on that itself
-// uint8_t checkResponse(uint8_t expected_slave, uint16_t expected_address, uint16_t reg_quantity, int16_t *match_values) {
+// TODO: check the response like slave, address, function, lrc, registers and return code based on
+// that itself uint8_t checkResponse(uint8_t expected_slave, uint16_t expected_address, uint16_t
+// reg_quantity, int16_t *match_values) {
 //     if(!)
 //
 // }
 
-void ReadUntilMatch(uint8_t slave, uint16_t address, uint16_t reg_quantity, const int16_t *match_values) {
-    uint8_t ascii_response[64];
-    uint8_t hex_response[32];
-    uint16_t byte_len;
-    uint8_t exception_code;
+void ReadUntilMatch(uint8_t slave, uint16_t address, uint16_t reg_quantity,
+                    const int16_t* match_values) {
+    uint8_t  ascii_response[64];
     uint16_t ascii_len;
+    uint8_t  byte_response[32];
+    uint16_t byte_len;
+    uint8_t  exception_code;
 
-    while(1) {
+    while (1) {
         RequestReadRegisters(slave, address, reg_quantity);
         ascii_len = UART_ReadAsciiArray(ascii_response, 64);
 
-        if(!ModbusAsciiToBytes(ascii_response, ascii_len, 32, hex_response, &byte_len)) 
+        if (!ModbusAsciiToBytes(ascii_response, ascii_len, 32, byte_response, &byte_len))
             continue;
 
-        if(!validateLRC(hex_response, byte_len))
+        if (!validateLRC(byte_response, byte_len))
             continue;
 
-        if(hex_response[0] != slave)
+        if (byte_response[0] != slave)
             continue;
-        if (hex_response[1] != 0x03)
+        if (byte_response[1] != 0x03)
             continue;
-        if(hex_response[1] & 0x80) {
-            exception_code = hex_response[2];
+        if (byte_response[1] & 0x80) {
+            exception_code = byte_response[2];
             break;
         }
 
 
         // TODO: check response
-        
+
         // TODO: check each register value with *match_values
-//         if (abs(data - value) <= 50) {
-//             return;
-//         }
-
+        //         if (abs(data - value) <= 50) {
+        //             return;
+        //         }
     }
-
 }

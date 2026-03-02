@@ -1,10 +1,10 @@
+#include <stdint.h>
 #include "delay.h"
 #include "gpio.h"
 #include "modbus_ascii.h"
 #include "rmcs_registers.h"
 #include "stm32f4xx.h"
 #include "uart.h"
-#include <stdint.h>
 
 int main(void) {
     SystemInit();

@@ -52,7 +52,6 @@ AlignConsecutiveDeclarations: true  # Align declarations visually
 AlignEscapedNewlines: Left
 AlignTrailingComments: true
 AlignConsecutiveMacros: true
-AlignTrailingComments: true
 
 # Others
 BreakConstructorInitializers: AfterColon # Break constructor initializers after the colon

@@ -32,7 +32,7 @@ void WriteSingleRegister(uint8_t slave, uint16_t address, uint16_t data) {
     UART_SendArray(frame, 17);
 }
 
-void RequestReadRegisters(uint8_t slave, uint16_t address, uint32_t quantity) {
+void RequestReadRegisters(uint8_t slave, uint16_t address, uint16_t quantity) {
     uint8_t frame[17];
     uint8_t binary_frame[6];
     uint8_t lrc;
@@ -41,8 +41,8 @@ void RequestReadRegisters(uint8_t slave, uint16_t address, uint32_t quantity) {
     binary_frame[1] = 0x03;
     binary_frame[2] = address >> 8;
     binary_frame[3] = address & 0xFF;
-    binary_frame[4] = (quantity >> 16) & 0xFFFF;
-    binary_frame[5] = quantity & 0xFFFF;
+    binary_frame[4] = quantity >> 8;
+    binary_frame[5] = quantity & 0xFF;
 
     lrc = LRC(binary_frame, 6);
 
@@ -72,23 +72,27 @@ void RMCS_SetPosition(uint8_t slave, int32_t pos) {
     WriteSingleRegister(slave, REG_MSB_POS, (pos >> 16) & 0xFFFF);
 }
 
+// TODO: check the response like slave, address, function, lrc, registers and return code based on that itself
 // uint8_t checkResponse(uint8_t expected_slave, uint16_t expected_address, uint16_t reg_quantity, int16_t *match_values) {
 //     if(!)
 //
 // }
 
-void ReadUntilMatch(uint8_t slave, uint16_t address, uint16_t reg_quantity, int16_t *match_values) {
+void ReadUntilMatch(uint8_t slave, uint16_t address, uint16_t reg_quantity, const int16_t *match_values) {
     uint8_t ascii_response[64];
     uint8_t hex_response[32];
-    uint16_t hex_len;
+    uint16_t byte_len;
+    uint8_t exception_code;
+    uint16_t ascii_len;
+
     while(1) {
         RequestReadRegisters(slave, address, reg_quantity);
-        uint16_t ascii_len = UART_ReadAsciiArray(ascii_response, 64);
+        ascii_len = UART_ReadAsciiArray(ascii_response, 64);
 
-        if(!ModbusAsciiToBytes(ascii_response, ascii_len, 32, hex_response, &hex_len)) 
+        if(!ModbusAsciiToBytes(ascii_response, ascii_len, 32, hex_response, &byte_len)) 
             continue;
 
-        if(!validateLRC(hex_response, hex_len))
+        if(!validateLRC(hex_response, byte_len))
             continue;
 
         if(hex_response[0] != slave)
@@ -96,14 +100,18 @@ void ReadUntilMatch(uint8_t slave, uint16_t address, uint16_t reg_quantity, int1
         if (hex_response[1] != 0x03)
             continue;
         if(hex_response[1] & 0x80) {
-            uint8_t exception_code = hex_response[2];
-            continue;
+            exception_code = hex_response[2];
+            break;
         }
 
-        // put all validation steps and checks registers
+
+        // TODO: check response
+        
+        // TODO: check each register value with *match_values
 //         if (abs(data - value) <= 50) {
 //             return;
 //         }
 
     }
+
 }

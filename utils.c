@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include "utils.h"
 
 void ByteToHex(uint8_t byte, uint8_t* hex) {
     const uint8_t hex_chars[] = "0123456789ABCDEF";
@@ -33,7 +34,7 @@ bool AsciiToByte(uint8_t msb_ascii, uint8_t lsb_ascii, uint8_t *out) {
     if(!AsciiToNibble(lsb_ascii, &lsb))
         return false;
 
-    *out = (msb << 4) | lsb;
+    *out = (uint8_t)((msb << 4) | lsb);
 
     return true;
 }

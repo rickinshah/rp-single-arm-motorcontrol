@@ -434,6 +434,16 @@
               <FileType>5</FileType>
               <FilePath>.\rmcs_registers.h</FilePath>
             </File>
+            <File>
+              <FileName>utils.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\utils.c</FilePath>
+            </File>
+            <File>
+              <FileName>utils.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\utils.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

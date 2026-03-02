@@ -7,7 +7,6 @@
 #include <stdint.h>
 
 int main(void) {
-    uint8_t response[50];
     SystemInit();
     SysTick_Init();
 

@@ -1,1 +1,6 @@
 Objects
+DebugConfig
+Listings
+*.uvguix.*
+*.uvoptx
+*.scvd

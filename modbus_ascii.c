@@ -1,39 +1,9 @@
 #include "modbus_ascii.h"
-#include "delay.h"
 #include "rmcs_registers.h"
-#include <stdlib.h>
 #include "uart.h"
-
-static void ByteToHex(uint8_t byte, uint8_t* hex) {
-    const uint8_t hex_chars[] = "0123456789ABCDEF";
-    hex[0]                    = hex_chars[(byte >> 4) & 0x0F];
-    hex[1]                    = hex_chars[byte & 0x0F];
-}
-
-static uint8_t AsciiToNibble(uint8_t c) {
-    if(c >= '0' && c <= '9')
-        return (c - '0');
-    if(c >= 'A' && c <= 'F')
-        return (c - 'A' + 10);
-    if(c >= 'a' && c <= 'f')
-        return (c - 'a' + 10);
-    return 0;
-}
-
-static uint8_t AsciiToByte(uint8_t msb_ascii, uint8_t lsb_ascii) {
-    uint8_t msb = AsciiToNibble(msb_ascii);
-    uint8_t lsb = AsciiToNibble(lsb_ascii);
-
-    return (msb << 4) | lsb;
-}
-
-static uint8_t LRC(uint8_t* data, uint16_t length) {
-    uint8_t nLRC = 0;
-
-    for (uint32_t i = 0; i < length; i++) nLRC += *data++;
-
-    return (uint8_t) (-nLRC);
-}
+#include "utils.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 void WriteSingleRegister(uint8_t slave, uint16_t address, uint16_t data) {
     uint8_t frame[17];
@@ -62,7 +32,7 @@ void WriteSingleRegister(uint8_t slave, uint16_t address, uint16_t data) {
     UART_SendArray(frame, 17);
 }
 
-void ReadSingleRegister(uint8_t slave, uint16_t address) {
+void RequestReadRegisters(uint8_t slave, uint16_t address, uint32_t quantity) {
     uint8_t frame[17];
     uint8_t binary_frame[6];
     uint8_t lrc;
@@ -71,8 +41,8 @@ void ReadSingleRegister(uint8_t slave, uint16_t address) {
     binary_frame[1] = 0x03;
     binary_frame[2] = address >> 8;
     binary_frame[3] = address & 0xFF;
-    binary_frame[4] = 0x00;
-    binary_frame[5] = 0x01;
+    binary_frame[4] = (quantity >> 16) & 0xFFFF;
+    binary_frame[5] = quantity & 0xFFFF;
 
     lrc = LRC(binary_frame, 6);
 
@@ -102,17 +72,38 @@ void RMCS_SetPosition(uint8_t slave, int32_t pos) {
     WriteSingleRegister(slave, REG_MSB_POS, (pos >> 16) & 0xFFFF);
 }
 
-void ReadUntilMatch(uint8_t slave, uint16_t address, int16_t value) {
-    uint8_t response[50];
+// uint8_t checkResponse(uint8_t expected_slave, uint16_t expected_address, uint16_t reg_quantity, int16_t *match_values) {
+//     if(!)
+//
+// }
+
+void ReadUntilMatch(uint8_t slave, uint16_t address, uint16_t reg_quantity, int16_t *match_values) {
+    uint8_t ascii_response[64];
+    uint8_t hex_response[32];
+    uint16_t hex_len;
     while(1) {
-        ReadSingleRegister(slave, address);
-        UART_ReadAsciiArray(response);
+        RequestReadRegisters(slave, address, reg_quantity);
+        uint16_t ascii_len = UART_ReadAsciiArray(ascii_response, 64);
 
-        int16_t data = (int16_t)(((uint16_t)AsciiToByte(response[7], response[8]) << 8) | AsciiToByte(response[9], response[10]));
-        delay_ms(200);
+        if(!ModbusAsciiToBytes(ascii_response, ascii_len, 32, hex_response, &hex_len)) 
+            continue;
 
-        if (abs(data - value) <= 50) {
-            return;
+        if(!validateLRC(hex_response, hex_len))
+            continue;
+
+        if(hex_response[0] != slave)
+            continue;
+        if (hex_response[1] != 0x03)
+            continue;
+        if(hex_response[1] & 0x80) {
+            uint8_t exception_code = hex_response[2];
+            continue;
         }
+
+        // put all validation steps and checks registers
+//         if (abs(data - value) <= 50) {
+//             return;
+//         }
+
     }
 }

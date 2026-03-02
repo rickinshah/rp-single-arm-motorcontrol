@@ -23,10 +23,8 @@ int main(void) {
     while (1) {
         RMCS_SetPosition(7, 133600);
         // ReadUntilMatch(7, REG_LSB_POS_FB, 20000);
-        delay_ms(10000);
 
         // RMCS_SetPosition(7, -120240);
         // ReadUntilMatch(7, REG_LSB_POS_FB, -20000);
-        // delay_ms(5000);
     }
 }

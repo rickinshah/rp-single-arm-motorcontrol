@@ -27,8 +27,8 @@ uint8_t UART_ReadByte() {
     return (uint8_t)USART2->DR;
 }
 
-void UART_ReadAsciiArray(uint8_t* response) {
-    uint32_t i = 0;
+uint16_t UART_ReadAsciiArray(uint8_t* response, uint16_t max_len) {
+    uint16_t i = 0;
     uint8_t c;
     do {
         c = UART_ReadByte();
@@ -37,6 +37,13 @@ void UART_ReadAsciiArray(uint8_t* response) {
     response[i++] = c;
     do {
         c = UART_ReadByte();
+        
+        if(i >= max_len) {
+            return 0;
+        }
+
         response[i++] = c;
     } while(c != '\n');
+
+    return i;
 }

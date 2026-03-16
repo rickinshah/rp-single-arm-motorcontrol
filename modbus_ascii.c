@@ -1,6 +1,7 @@
 #include "modbus_ascii.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include "rmcs_registers.h"
 #include "uart.h"
 #include "utils.h"
@@ -72,12 +73,52 @@ void RMCS_SetPosition(uint8_t slave, int32_t pos) {
     WriteSingleRegister(slave, REG_MSB_POS, (pos >> 16) & 0xFFFF);
 }
 
-// TODO: check the response like slave, address, function, lrc, registers and return code based on
-// that itself uint8_t checkResponse(uint8_t expected_slave, uint16_t expected_address, uint16_t
-// reg_quantity, int16_t *match_values) {
-//     if(!)
-//
-// }
+uint8_t CheckResponse(uint8_t* data, uint16_t data_len, uint8_t expected_slave,
+                      uint8_t expected_func, uint16_t reg_quantity, uint16_t* out_index) {
+    uint16_t data_bytes = reg_quantity * 2;
+    *out_index          = 0;
+
+    if (data_len < (3 + data_bytes + 1))
+        return MODBUS_ERR_LENGTH;
+
+    if (!validateLRC(data, data_len))
+        return MODBUS_ERR_LRC;
+
+    if (data[(*out_index)++] != expected_slave)
+        return MODBUS_ERR_SLAVE;
+
+    if (data[*out_index] != expected_func) {
+        if (data[*out_index] == (0x80 | expected_func))
+            return MODBUS_ERR_EXCEPTION;
+        else
+            return MODBUS_ERR_FUNCTION;
+    }
+    (*out_index)++;
+
+    if (data_bytes != data[(*out_index)++])
+        return MODBUS_ERR_BYTECOUNT;
+
+    return MODBUS_OK;
+}
+
+bool ValidateRegisters(uint8_t* data, uint16_t data_len, uint16_t start_index,
+                       uint16_t reg_quantity, const int16_t* match_values) {
+    uint16_t curr_index = start_index;
+
+    if (data_len < start_index + (reg_quantity * 2))
+        return false;
+
+    for (int i = 0; i < reg_quantity; i++) {
+        int16_t curr_reg = (int16_t) BytesToDouble(data[curr_index], data[curr_index + 1]);
+        int32_t diff     = (int32_t) curr_reg - match_values[i];
+        if (abs(diff) > 20) {
+            return false;
+        }
+        curr_index += 2;
+    }
+
+    return true;
+}
 
 void ReadUntilMatch(uint8_t slave, uint16_t address, uint16_t reg_quantity,
                     const int16_t* match_values) {
@@ -85,7 +126,8 @@ void ReadUntilMatch(uint8_t slave, uint16_t address, uint16_t reg_quantity,
     uint16_t ascii_len;
     uint8_t  byte_response[32];
     uint16_t byte_len;
-    uint8_t  exception_code;
+    uint8_t  status;
+    uint16_t index;
 
     while (1) {
         RequestReadRegisters(slave, address, reg_quantity);
@@ -94,24 +136,12 @@ void ReadUntilMatch(uint8_t slave, uint16_t address, uint16_t reg_quantity,
         if (!ModbusAsciiToBytes(ascii_response, ascii_len, 32, byte_response, &byte_len))
             continue;
 
-        if (!validateLRC(byte_response, byte_len))
+        status = CheckResponse(byte_response, byte_len, slave, 0x03, reg_quantity, &index);
+
+        if (status != MODBUS_OK)
             continue;
 
-        if (byte_response[0] != slave)
-            continue;
-        if (byte_response[1] != 0x03)
-            continue;
-        if (byte_response[1] & 0x80) {
-            exception_code = byte_response[2];
+        if (ValidateRegisters(byte_response, byte_len, index, reg_quantity, match_values))
             break;
-        }
-
-
-        // TODO: check response
-
-        // TODO: check each register value with *match_values
-        //         if (abs(data - value) <= 50) {
-        //             return;
-        //         }
     }
 }

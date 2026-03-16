@@ -7,6 +7,8 @@
 #include "uart.h"
 
 int main(void) {
+    int32_t position;
+    int16_t positions[2];
     SystemInit();
     SysTick_Init();
 
@@ -20,10 +22,18 @@ int main(void) {
     RMCS_SetMode(7, MODE_POS);
     RMCS_SetSpeed(7, 5000);
     while (1) {
-        RMCS_SetPosition(7, 133600);
-        // ReadUntilMatch(7, REG_LSB_POS_FB, 20000);
+        position     = 133600;
+        positions[0] = (int16_t) (position & 0xFFFF);
+        positions[1] = (int16_t) (position >> 16);
+        RMCS_SetPosition(7, position);
+        ReadUntilMatch(7, REG_LSB_POS_FB, 2, positions);
+        delay_ms(200);
 
-        // RMCS_SetPosition(7, -120240);
-        // ReadUntilMatch(7, REG_LSB_POS_FB, -20000);
+        position     = 0;
+        positions[0] = (int16_t) (position & 0xFFFF);
+        positions[1] = (int16_t) (position >> 16);
+        RMCS_SetPosition(7, position);
+        ReadUntilMatch(7, REG_LSB_POS_FB, 2, positions);
+        delay_ms(200);
     }
 }

@@ -65,8 +65,8 @@ bool ModbusAsciiToBytes(const uint8_t* ascii_response, uint16_t ascii_len, uint1
     return true;
 }
 
-int16_t BytesToDouble(uint8_t msb, uint8_t lsb) {
-    return (int16_t) (((uint16_t) msb << 8) | lsb);
+uint16_t BytesToDouble(uint8_t msb, uint8_t lsb) {
+    return (uint16_t) ((msb << 8) | lsb);
 }
 
 uint8_t LRC(uint8_t* data, uint16_t length) {

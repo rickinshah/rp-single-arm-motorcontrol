@@ -385,11 +385,6 @@
           <GroupName>Source Group 1</GroupName>
           <Files>
             <File>
-              <FileName>main.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\main.c</FilePath>
-            </File>
-            <File>
               <FileName>delay.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\delay.c</FilePath>
@@ -403,6 +398,11 @@
               <FileName>uart.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>main.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\main.c</FilePath>
             </File>
             <File>
               <FileName>delay.h</FileName>
@@ -433,6 +433,26 @@
               <FileName>rmcs_registers.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\rmcs_registers.h</FilePath>
+            </File>
+            <File>
+              <FileName>i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>i2c.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\i2c.h</FilePath>
+            </File>
+            <File>
+              <FileName>mpr121.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\mpr121.c</FilePath>
+            </File>
+            <File>
+              <FileName>mpr121.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\mpr121.h</FilePath>
             </File>
           </Files>
         </Group>

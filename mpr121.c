@@ -46,3 +46,13 @@ uint16_t MPR_Touch() {
 
     return ((uint16_t) (msb << 8) | lsb);
 }
+
+uint16_t MPR_ReadBaseline(uint8_t electrode) {
+    if (electrode > 11)
+        return 0;  // MPR121 has 12 electrodes (0–11)
+
+    uint8_t reg = 0x1E + electrode;  // baseline registers start at 0x1E
+    uint8_t val = MPR_Read(reg);
+
+    return ((uint16_t) val << 2);  // convert to 10-bit baseline
+}

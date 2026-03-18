@@ -10,7 +10,10 @@
 
 int main(void) {
     // uint8_t response[50];
-    uint16_t reg = 123;
+    uint16_t reg    = 0;
+    uint16_t base   = 0;
+    uint8_t* urt    = (uint8_t*) "Value: ";
+    uint8_t* basePr = (uint8_t*) "B";
     SystemInit();
     SysTick_Init();
 
@@ -39,20 +42,51 @@ int main(void) {
     }
     */
 
-    MPR_Write(0x41, 200);
-    MPR_Write(0x42, 100);
+    MPR_Write(0x41, 12);
+    MPR_Write(0x42, 6);
+    // Rising
+    /*
+    MPR_Write(0x2B, 0x01);
+    MPR_Write(0x2C, 0x01);
+    MPR_Write(0x2D, 0x00);
+    MPR_Write(0x2E, 0x01);
+
+    // Falling (keep stable)
+    MPR_Write(0x2F, 0x01);
+    MPR_Write(0x30, 0x01);
+    MPR_Write(0x31, 0xFF);
+    MPR_Write(0x32, 0x02);*/
     // delay_ms(200);
     MPR_Write(0x5E, 0x00);
+    delay_ms(50);
     MPR_Write(0x5E, 0x0C);
 
     while (1) {
         reg = MPR_Touch();
 
+        UART_SendArray(urt, 7);
         UART_SendHex((reg >> 8) & 0xFF);
         UART_SendHex(reg & 0xFF);
 
+        UART_SendByte(' ');
+        UART_SendByte(' ');
+
+        for (uint8_t i = 0; i < 12; i++) {
+            base = MPR_ReadBaseline(i);
+            UART_SendByte('B');
+            UART_SendHex(i);
+            UART_SendByte(':');
+
+            UART_SendHex((base >> 8) & 0xFF);
+            UART_SendHex(base & 0xFF);
+
+            UART_SendByte(' ');
+        }
+
+
         UART_SendByte('\r');
         UART_SendByte('\n');
+
 
         delay_ms(200);
     }

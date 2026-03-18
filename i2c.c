@@ -2,7 +2,8 @@
 #include "stm32f4xx.h"
 
 void I2C1_Init(void) {
-    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN | RCC_APB1ENR_I2C1EN;
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
+    RCC->APB1ENR |= RCC_APB1ENR_I2C1EN;
 
     GPIOB->MODER |= (2 << (6 * 2)) | (2 << (7 * 2));
 
@@ -40,4 +41,9 @@ void I2C_WriteByte(uint8_t data) {
 
 void I2C1_Stop(void) {
     I2C1->CR1 |= I2C_CR1_STOP;
+}
+
+uint8_t I2C1_ReadByte() {
+    while (!(I2C1->SR1 & I2C_SR1_RXNE));
+    return (uint8_t) I2C1->DR;
 }

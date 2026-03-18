@@ -24,19 +24,26 @@ void UART_SendArray(uint8_t* buf, uint16_t len) {
 
 uint8_t UART_ReadByte() {
     while (!(USART2->SR & USART_SR_RXNE));
-    return (uint8_t)USART2->DR;
+    return (uint8_t) USART2->DR;
 }
 
 void UART_ReadAsciiArray(uint8_t* response) {
     uint32_t i = 0;
-    uint8_t c;
+    uint8_t  c;
     do {
         c = UART_ReadByte();
-    } while(c != ':');
+    } while (c != ':');
 
     response[i++] = c;
     do {
-        c = UART_ReadByte();
+        c             = UART_ReadByte();
         response[i++] = c;
-    } while(c != '\n');
+    } while (c != '\n');
+}
+
+void UART_SendHex(uint8_t val) {
+    char hex[] = "0123456789ABCDEF";
+
+    UART_SendByte(hex[(val >> 4) & 0x0F]);
+    UART_SendByte(hex[val & 0x0F]);
 }

@@ -42,8 +42,10 @@ int main(void) {
     }
     */
 
-    MPR_Write(0x41, 12);
-    MPR_Write(0x42, 6);
+    for (int i = 0; i < 12; i++) {
+        MPR_Write(0x41 + i * 2, 30);  // touch
+        MPR_Write(0x42 + i * 2, 15);  // release
+    }
     // Rising
     /*
     MPR_Write(0x2B, 0x01);
